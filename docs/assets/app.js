@@ -35,7 +35,7 @@ function renderLayer(layer){
       const btn=document.createElement("button");
       const teacherLabel=Array.isArray(t.teachers)?t.teachers.join(" + "):(t.teachers||"");
       const count=ST.students.filter(s=>gradeKey(s.class)===layer && (s.track||"")===t.track).length;
-      btn.className=`btn ${layer.toLowerCase()}`;  // צבע לפי שכבה
+      btn.className=`btn ${layer.toLowerCase()}`;
       btn.innerHTML=`<span>${t.track} — ${teacherLabel}</span><small class="count">${count}</small>`;
       btn.onclick=()=>renderTrack(layer,t.track,teacherLabel);
       list.appendChild(btn);
@@ -97,7 +97,7 @@ function wire(){
   });
 }
 
-/* PWA: רישום SW + כפתור התקנה */
+/* PWA */
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./service-worker.js',{scope:'./'}).catch(console.error);
 }
@@ -106,7 +106,7 @@ window.addEventListener('beforeinstallprompt',(e)=>{
   e.preventDefault(); deferredPrompt=e;
   const btn=document.getElementById('installPWA');
   if(btn){
-    btn.classList.add('install-btn'); // קיים ב־CSS
+    btn.classList.add('install-btn');
     btn.style.display='inline-block';
     btn.onclick=async()=>{
       try{ btn.disabled=true; await deferredPrompt.prompt(); await deferredPrompt.userChoice; }
