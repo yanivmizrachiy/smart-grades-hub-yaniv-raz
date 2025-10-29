@@ -107,3 +107,24 @@ function wire(){
 }
 
 document.addEventListener("DOMContentLoaded", ()=>{ wire(); load(); setInterval(load, 5000); });
+
+/* --- PWA install + SW register --- */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./service-worker.js').catch(console.error);
+}
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault(); deferredPrompt=e;
+  const btn=document.getElementById('installPWA');
+  if(btn){ btn.style.display='inline-block';
+    btn.onclick=async ()=>{
+      try{
+        btn.disabled=true;
+        await deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+      } finally {
+        deferredPrompt=null; btn.disabled=false; btn.style.display='none';
+      }
+    };
+  }
+});
