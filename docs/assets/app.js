@@ -34,3 +34,7 @@ async function load(){
 }
 addEventListener('DOMContentLoaded',()=>{route();load();setInterval(load,3000);});
 addEventListener('hashchange',route);
+window.addEventListener('appinstalled', ()=>{
+  const b=document.getElementById('installPWA');
+  if(b) b.style.display='none';
+});
