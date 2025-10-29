@@ -1,7 +1,10 @@
 {
   "name": "Smart Grades Hub",
   "short_name": "GradesHub",
-  "start_url": "./index.html",
+  "dir": "rtl",
+  "lang": "he",
+  "start_url": "/smart-grades-hub-yaniv-raz/",
+  "scope": "/smart-grades-hub-yaniv-raz/",
   "display": "standalone",
   "background_color": "#612b91",
   "theme_color": "#612b91",
