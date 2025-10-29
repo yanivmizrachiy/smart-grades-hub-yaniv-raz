@@ -1,130 +1,36 @@
-const ST={students:[], teachers:null};
-const els={
-  z:document.getElementById("count-Z"),
-  h:document.getElementById("count-H"),
-  t:document.getElementById("count-T"),
-  viewTitle:document.getElementById("view-title"),
-  viewContent:document.getElementById("view-content")
-};
+const API={data:'./data',status:'./.status'},POLL=3000,$=s=>document.querySelector(s);
+async function j(u){const r=await fetch(u+`?t=${Date.now()}`);if(!r.ok)throw new Error(r.status);return r.json();}
+function L(c){if(/^ז/.test(c))return'Z';if(/^ח/.test(c))return'H';if(/^ט/.test(c))return'T';return'';}
+function label(L){return L==='Z'?'שכבת ז׳':L==='H'?'שכבת ח׳':L==='T'?'שכבת ט׳':'';}
+function norm(t=''){t=t.trim().replace(/['`]/g,'׳').replace(/\s*-\s*/g,'-');if(/^א[׳']?\s*1$/.test(t))return'א׳-1';if(/^א[׳']?$/.test(t))return'א׳';if(/^מקדמת/.test(t))return'מקדמת';if(/^מדעית/.test(t))return'מדעית';return t||'ללא הקבצה';}
+let ST={students:[]}, PROG={percent:0,stage:''};
 
-function gradeKey(clazz){
-  if(!(clazz && typeof clazz==="string")) return null;
-  const c = clazz.trim()[0];
-  if(c==="ז") return "Z";
-  if(c==="ח") return "H";
-  if(c==="ט") return "T";
-  return null;
+function progress(p){const pct=Math.max(0,Math.min(100,Number((p||{}).percent||0)));const bar=$('#progressfill'),txt=$('#progresstext');if(bar)bar.style.width=pct+'%';if(txt)txt.textContent=`התקדמות: ${pct}% — ${(p||{}).stage||''}`;}
+function counts(){const c={Z:0,H:0,T:0};for(const s of ST.students){const l=L(s.class||'');if(l)c[l]++;}['Z','H','T'].forEach(k=>{const el=$('#cnt'+k);if(el)el.textContent=`👥 ${c[k]} תלמידים`;});}
+function crumbs(p){const el=$('#crumbs');if(!el)return;const a=[`<a href="#/">דף הבית</a>`];if(p.layer)a.push(`<a href="#/layer/${p.layer}">${label(p.layer)}</a>`);if(p.track)a.push(`<span>הקבצה ${p.track}</span>`);el.innerHTML=a.join(' › ');}
+
+function route(){const seg=(location.hash||'#/').replace(/^#/,'').split('/').filter(Boolean);
+  if(seg.length===0){$('#view').innerHTML='';crumbs({});counts();return;}
+  if(seg[0]==='layer'){const Lr=seg[1];if(seg[2]==='track'&&seg[3])return renderTrack(Lr,decodeURIComponent(seg[3]));return renderLayer(Lr);}
+  $('#view').innerHTML='';crumbs({});counts();
 }
-
-function counts(){
-  const c={Z:0,H:0,T:0};
-  ST.students.forEach(s=>{
-    const g=gradeKey(s.class);
-    if(g&&c[g]!=null) c[g]++;
-  });
-  els.z.textContent=c.Z;
-  els.h.textContent=c.H;
-  els.t.textContent=c.T;
+function renderLayer(Lr){crumbs({layer:Lr});const v=$('#view');const arr=ST.students.filter(s=>L(s.class||'')===Lr);const by=new Map();
+  for(const s of arr){const t=norm(s.track||'');if(!by.has(t))by.set(t,[]);by.get(t).push(s);}
+  const cards=[...by.entries()].map(([t,a])=>{const teachers=[...new Set(a.map(x=>x.math_teacher).filter(Boolean))];
+    return `<a class="bigbtn" href="#/layer/${Lr}/track/${encodeURIComponent(t)}">הקבצה ${t}<span class="muted">מורה: ${teachers.join(', ')||'—'} · 👥 ${a.length}</span></a>`}).join('');
+  v.innerHTML=`<div class="card"><div class="view-title">${label(Lr)}</div><div class="grid2">${cards||'<span class="muted">אין תלמידים</span>'}</div></div>`;
 }
-
-function renderLayer(layer){
-  const names={Z:"שכבת ז׳",H:"שכבת ח׳",T:"שכבת ט׳"};
-  els.viewTitle.textContent = names[layer]||"";
-  const wrap=document.createElement("div");
-
-  const tracks = (ST.teachers && ST.teachers[layer]) ? ST.teachers[layer] : [];
-  if(tracks.length){
-    const list=document.createElement("div");
-    list.style.display="grid"; list.style.gap="8px"; list.style.margin="10px 0 14px";
-    tracks.forEach(t=>{
-      const btn=document.createElement("button");
-      btn.className="layer-btn";
-      const teacherLabel = Array.isArray(t.teachers) ? t.teachers.join(" + ") : (t.teachers||"");
-      const count = ST.students.filter(s=>gradeKey(s.class)===layer && (s.track||"")===t.track).length;
-      btn.innerHTML=`<span>${t.track} — ${teacherLabel}</span><small class="count">${count}</small>`;
-      btn.onclick=()=>renderTrack(layer,t.track,teacherLabel);
-      list.appendChild(btn);
-    });
-    wrap.appendChild(list);
-  }
-
-  const rows = ST.students.filter(s=>gradeKey(s.class)===layer);
-  const table=document.createElement("table");
-  table.className="table";
-  table.innerHTML = `
-    <thead><tr>
-      <th>שם משפחה</th><th>שם פרטי</th><th>כיתה</th><th>הקבצה</th><th>מורה</th>
-    </tr></thead>
-    <tbody>${rows.map(s=>`
-      <tr><td>${s.last_name||""}</td><td>${s.first_name||""}</td><td>${s.class||""}</td><td>${s.track||""}</td><td>${s.teacher||""}</td></tr>
-    `).join("")}</tbody>`;
-  els.viewContent.replaceChildren(wrap, table);
-}
-
-function renderTrack(layer,track,teacherLabel){
-  els.viewTitle.textContent = `${({Z:"שכבת ז׳",H:"שכבת ח׳",T:"שכבת ט׳"})[layer]} — ${track}`;
-  const rows = ST.students.filter(s=>gradeKey(s.class)===layer && (s.track||"")===(track||""));
-  const info=document.createElement("div");
-  info.style.margin="6px 0 10px";
-  info.innerHTML = `<span class="count" style="padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.12)">${rows.length} תלמידים — ${teacherLabel||""}</span>`;
-  const table=document.createElement("table");
-  table.className="table";
-  table.innerHTML = `
-    <thead><tr>
-      <th>שם משפחה</th><th>שם פרטי</th><th>כיתה</th><th>מורה</th>
-    </tr></thead>
-    <tbody>${rows.map(s=>`
-      <tr><td>${s.last_name||""}</td><td>${s.first_name||""}</td><td>${s.class||""}</td><td>${s.teacher||""}</td></tr>
-    `).join("")}</tbody>`;
-  const wrap=document.createElement("div");
-  wrap.appendChild(info); wrap.appendChild(table);
-  els.viewContent.replaceChildren(wrap);
+function renderTrack(Lr,t){crumbs({layer:Lr,track:t});const v=$('#view');const arr=ST.students.filter(s=>L(s.class||'')===Lr&&norm(s.track||'')===t);
+  const rows=arr.map(s=>`<tr><td>${(s.first_name||'')+' '+(s.last_name||'')}</td><td>${s.class||''}</td><td>${s.track||''}</td><td>${s.math_teacher||''}</td><td>${(s.notes||[]).map(n=>`${n.date||''} — ${n.text||''}`).join('<br>')||'—'}</td></tr>`).join('');
+  v.innerHTML=`<div class="card"><div class="view-title">${label(Lr)} — הקבצה ${t}</div><table><thead><tr><th>תלמיד</th><th>כיתה</th><th>הקבצה</th><th>מורה</th><th>הערות</th></tr></thead><tbody>${rows||'<tr><td colspan="5">אין תלמידים</td></tr>'}</tbody></table></div>`;
 }
 
 async function load(){
   try{
-    const sj = await fetch("data/students.json?ts="+Date.now()).then(r=>r.ok?r.json():{students:[]});
-    ST.students = Array.isArray(sj.students)? sj.students : [];
-    try{
-      ST.teachers = await fetch("data/teachers.json?ts="+Date.now()).then(r=>r.ok?r.json():null);
-    }catch(_){ ST.teachers=null; }
-    counts();
-    const selected = localStorage.getItem("lastLayer");
-    if(selected && ["Z","H","T"].includes(selected)){
-      renderLayer(selected);
-    }
-  }catch(e){ console.error(e); }
+    const sj=await j(`${API.data}/students.json`).catch(()=>({students:[]}));
+    const pj=await j(`${API.status}/progress.json`).catch(()=>({percent:0,stage:''}));
+    ST.students=Array.isArray(sj.students)?sj.students:[]; PROG=pj; progress(PROG); counts(); route();
+  }catch(e){console.error(e);}
 }
-
-function wire(){
-  document.querySelectorAll(".layer-btn").forEach(b=>{
-    b.addEventListener("click", ()=>{
-      const layer=b.getAttribute("data-layer");
-      localStorage.setItem("lastLayer", layer);
-      renderLayer(layer);
-    });
-  });
-}
-
-document.addEventListener("DOMContentLoaded", ()=>{ wire(); load(); setInterval(load, 5000); });
-
-/* --- PWA install + SW register --- */
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./service-worker.js').catch(console.error);
-}
-let deferredPrompt=null;
-window.addEventListener('beforeinstallprompt', (e)=>{
-  e.preventDefault(); deferredPrompt=e;
-  const btn=document.getElementById('installPWA');
-  if(btn){ btn.style.display='inline-block';
-    btn.onclick=async ()=>{
-      try{
-        btn.disabled=true;
-        await deferredPrompt.prompt();
-        await deferredPrompt.userChoice;
-      } finally {
-        deferredPrompt=null; btn.disabled=false; btn.style.display='none';
-      }
-    };
-  }
-});
+addEventListener('DOMContentLoaded',()=>{route();load();setInterval(load,3000);});
+addEventListener('hashchange',route);
