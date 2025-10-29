@@ -1,13 +1,31 @@
 <!doctype html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>מערכת חכמה לניהול תלמידים</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="assets/styles.css" />
 </head>
 <body>
-  <h1>מערכת חכמה לניהול תלמידים</h1>
-  <h3>האתר מנוהל ע״י יניב רז</h3>
-  <p>שלום יניב 👋 האתר שלך בגיטהאב עובד!</p>
+  <header class="hero">
+    <h1>מערכת חכמה לניהול תלמידים</h1>
+    <p class="sub">האתר מנוהל על ידי יניב רז</p>
+  </header>
+
+  <main class="container">
+    <section class="layers">
+      <button class="layer-btn" data-layer="Z">שכבת ז׳<br><small>תלמידים: <span id="count-Z">0</span></small></button>
+      <button class="layer-btn" data-layer="H">שכבת ח׳<br><small>תלמידים: <span id="count-H">0</span></small></button>
+      <button class="layer-btn" data-layer="T">שכבת ט׳<br><small>תלמידים: <span id="count-T">0</span></small></button>
+    </section>
+
+    <section class="view">
+      <h2 id="view-title"></h2>
+      <div id="view-content"></div>
+    </section>
+  </main>
+
+  <script src="assets/app.js"></script>
 </body>
 </html>

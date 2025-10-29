@@ -1,14 +1,17 @@
-:root{--purple:#612b91;--purple-dark:#4a2074;--accent:#fff;--muted:#d7c9f1}
-html[dir="rtl"] body{direction:rtl;background:var(--purple);color:#fff;margin:0;font-family:'Noto Sans Hebrew',system-ui,Arial}
-.wrap{max-width:1200px;margin:0 auto;padding:28px}
-.title{font-size:40px;margin:0 0 6px;font-weight:800}
-.subtitle{font-size:16px;color:var(--muted);margin-bottom:22px}
-.card{background:var(--purple-dark);border-radius:18px;padding:20px;box-shadow:0 10px 28px rgba(0,0,0,.25);margin:12px 0}
-.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.bigbtn{display:block;text-align:center;padding:26px;border-radius:16px;background:var(--purple-dark);color:#fff;text-decoration:none;font-weight:800;box-shadow:0 8px 22px rgba(0,0,0,.25);transition:.15s}
-.bigbtn:hover{transform:translateY(-2px)}
-.progressbar{width:100%;height:12px;background:rgba(255,255,255,.15);border-radius:999px;overflow:hidden;margin-bottom:8px}
-#progressfill{height:100%;width:0%;background:#fff;transition:width .3s}
-table{width:100%;border-collapse:collapse;background:#3f186c;color:#fff;border-radius:12px;overflow:hidden}
-th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.15)}
-.muted{display:block;font-size:12px;color:#d7c9f1;margin-top:6px}
+:root{--purple:#612b91;--purple-2:#4f2278;--white:#fff}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;direction:rtl}
+body{background:var(--purple);color:var(--white);min-height:100vh}
+.hero{padding:30px 16px;text-align:center;background:linear-gradient(180deg,rgba(0,0,0,.15),transparent)}
+.hero h1{margin:0 0 6px 0;font-size:28px;font-weight:800}
+.hero .sub{margin:0;opacity:.9}
+.container{max-width:980px;margin:0 auto;padding:16px}
+.layers{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0 22px}
+.layer-btn{background:var(--purple-2);color:var(--white);border:none;border-radius:16px;padding:14px 12px;font-size:18px;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.2);transition:transform .08s ease}
+.layer-btn:hover{transform:translateY(-1px)}
+.layer-btn small{display:block;margin-top:6px;opacity:.9}
+.view h2{margin:8px 0 14px 0}
+.table{width:100%;border-collapse:collapse;background:rgba(255,255,255,.05);border-radius:12px;overflow:hidden}
+.table th,.table td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.12)}
+.table th{background:rgba(0,0,0,.12);text-align:right}
+.count{font-weight:700}
