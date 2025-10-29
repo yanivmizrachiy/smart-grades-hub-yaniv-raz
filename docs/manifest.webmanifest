@@ -1,13 +1,12 @@
 {
-  "name": "ניהול תלמידים – יניב רז",
-  "short_name": "Smart Grades",
+  "name": "Smart Grades Hub",
+  "short_name": "GradesHub",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#5a3cc4",
-  "theme_color": "#5a3cc4",
-  "description": "מערכת חכמה לניהול תלמידים – יניב רז",
+  "background_color": "#612b91",
+  "theme_color": "#612b91",
   "icons": [
-    {"src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
-    {"src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png"}
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
   ]
 }
