@@ -1,0 +1,19 @@
+<!doctype html><html lang="he" dir="rtl"><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Status · Smart Grades Hub</title>
+<link rel="stylesheet" href="../assets/styles.css"/>
+<body class="wrap">
+<h1>סטטוס n8n / GitHub Actions</h1>
+<p class="sub">נשלף ישירות מ־.status ב־branch main (קריאה ל־raw.githubusercontent.com)</p>
+<pre id="full" class="card" style="white-space:pre-wrap"></pre>
+<script>
+const RAW="https://raw.githubusercontent.com/yanivmizrachiy/smart-grades-hub-yaniv-raz/main/.status";
+async function show(id,file){
+  try{
+    const r=await fetch(`${RAW}/${file}?t=${Date.now()}`);
+    document.getElementById(id).textContent = (r.ok?JSON.stringify(await r.json(),null,2):("HTTP "+r.status));
+  }catch(e){ document.getElementById(id).textContent="Error: "+e; }
+}
+show("full","full_report.json");
+</script>
+</body></html>
