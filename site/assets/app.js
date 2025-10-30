@@ -1,36 +1,81 @@
-const API={data:'./data',status:'./.status'},POLL=3000,$=s=>document.querySelector(s);
-async function j(u){const r=await fetch(u+`?t=${Date.now()}`);if(!r.ok)throw new Error(r.status);return r.json();}
-function L(c){if(/^ז/.test(c))return'Z';if(/^ח/.test(c))return'H';if(/^ט/.test(c))return'T';return'';}
-function label(L){return L==='Z'?'שכבת ז׳':L==='H'?'שכבת ח׳':L==='T'?'שכבת ט׳':'';}
-function norm(t=''){t=t.trim().replace(/['`]/g,'׳').replace(/\s*-\s*/g,'-');if(/^א[׳']?\s*1$/.test(t))return'א׳-1';if(/^א[׳']?$/.test(t))return'א׳';if(/^מקדמת/.test(t))return'מקדמת';if(/^מדעית/.test(t))return'מדעית';return t||'ללא הקבצה';}
-let ST={students:[]}, PROG={percent:0,stage:''};
+const API_BASE = "../data";
 
-function progress(p){const pct=Math.max(0,Math.min(100,Number((p||{}).percent||0)));const bar=$('#progressfill'),txt=$('#progresstext');if(bar)bar.style.width=pct+'%';if(txt)txt.textContent=`התקדמות: ${pct}% — ${(p||{}).stage||''}`;}
-function counts(){const c={Z:0,H:0,T:0};for(const s of ST.students){const l=L(s.class||'');if(l)c[l]++;}['Z','H','T'].forEach(k=>{const el=$('#cnt'+k);if(el)el.textContent=`👥 ${c[k]} תלמידים`;});}
-function crumbs(p){const el=$('#crumbs');if(!el)return;const a=[`<a href="#/">דף הבית</a>`];if(p.layer)a.push(`<a href="#/layer/${p.layer}">${label(p.layer)}</a>`);if(p.track)a.push(`<span>הקבצה ${p.track}</span>`);el.innerHTML=a.join(' › ');}
+async function getJSON(p){ const r=await fetch(`${API_BASE}/${p}?t=${Date.now()}`); if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }
+function byLayer(letter){ return s => (s.class||'').trim().startsWith(letter); }
+function countLayer(students, letter){ return students.filter(byLayer(letter)).length; }
+function el(tag, attrs={}, kids=[]){ const e=document.createElement(tag); Object.assign(e, attrs); for(const k of kids) e.appendChild(typeof k==='string'?document.createTextNode(k):k); return e; }
 
-function route(){const seg=(location.hash||'#/').replace(/^#/,'').split('/').filter(Boolean);
-  if(seg.length===0){$('#view').innerHTML='';crumbs({});counts();return;}
-  if(seg[0]==='layer'){const Lr=seg[1];if(seg[2]==='track'&&seg[3])return renderTrack(Lr,decodeURIComponent(seg[3]));return renderLayer(Lr);}
-  $('#view').innerHTML='';crumbs({});counts();
-}
-function renderLayer(Lr){crumbs({layer:Lr});const v=$('#view');const arr=ST.students.filter(s=>L(s.class||'')===Lr);const by=new Map();
-  for(const s of arr){const t=norm(s.track||'');if(!by.has(t))by.set(t,[]);by.get(t).push(s);}
-  const cards=[...by.entries()].map(([t,a])=>{const teachers=[...new Set(a.map(x=>x.math_teacher).filter(Boolean))];
-    return `<a class="bigbtn" href="#/layer/${Lr}/track/${encodeURIComponent(t)}">הקבצה ${t}<span class="muted">מורה: ${teachers.join(', ')||'—'} · 👥 ${a.length}</span></a>`}).join('');
-  v.innerHTML=`<div class="card"><div class="view-title">${label(Lr)}</div><div class="grid2">${cards||'<span class="muted">אין תלמידים</span>'}</div></div>`;
-}
-function renderTrack(Lr,t){crumbs({layer:Lr,track:t});const v=$('#view');const arr=ST.students.filter(s=>L(s.class||'')===Lr&&norm(s.track||'')===t);
-  const rows=arr.map(s=>`<tr><td>${(s.first_name||'')+' '+(s.last_name||'')}</td><td>${s.class||''}</td><td>${s.track||''}</td><td>${s.math_teacher||''}</td><td>${(s.notes||[]).map(n=>`${n.date||''} — ${n.text||''}`).join('<br>')||'—'}</td></tr>`).join('');
-  v.innerHTML=`<div class="card"><div class="view-title">${label(Lr)} — הקבצה ${t}</div><table><thead><tr><th>תלמיד</th><th>כיתה</th><th>הקבצה</th><th>מורה</th><th>הערות</th></tr></thead><tbody>${rows||'<tr><td colspan="5">אין תלמידים</td></tr>'}</tbody></table></div>`;
-}
-
-async function load(){
+async function render(){
   try{
-    const sj=await j(`${API.data}/students.json`).catch(()=>({students:[]}));
-    const pj=await j(`${API.status}/progress.json`).catch(()=>({percent:0,stage:''}));
-    ST.students=Array.isArray(sj.students)?sj.students:[]; PROG=pj; progress(PROG); counts(); route();
-  }catch(e){console.error(e);}
+    const students = await getJSON("students.json").then(x=>x.students||[]);
+    const set = (id, val) => { const n=document.getElementById(id); if(n) n.textContent = `${val} תלמידים`; };
+
+    set("count-Z", countLayer(students,"ז"));
+    set("count-H", countLayer(students,"ח"));
+    set("count-T", countLayer(students,"ט"));
+
+    const view = document.getElementById("view");
+    if(!view) return;
+
+    const hash = location.hash || "#/";
+    view.innerHTML = "";
+
+    if(hash === "#/" || hash === ""){
+      view.appendChild(el("div",{},["בחר שכבה כדי להמשיך"]));
+      return;
+    }
+
+    const m = hash.match(/^#\/layer\/([ZHT])(?:\/track\/(.+))?$/);
+    if(!m){ view.appendChild(el("div",{},[el("a",{href:"#/","className":"back",textContent:"⬅ חזרה לדף הראשי"})])); return; }
+
+    const L = m[1]; const track = m[2] ? decodeURIComponent(m[2]) : null;
+    const letter = (L==="Z" ? "ז" : L==="H" ? "ח" : "ט");
+    const layerStudents = students.filter(byLayer(letter));
+
+    if(!track){
+      const groups = {};
+      for(const st of layerStudents){
+        const tname = (st.track||"לא משויך");
+        if(!groups[tname]) groups[tname] = { teacher: st.math_teacher||"", list: [] };
+        groups[tname].list.push(st);
+        if(!groups[tname].teacher && st.math_teacher) groups[tname].teacher = st.math_teacher;
+      }
+      view.appendChild(el("h2",{textContent:`שכבת ${letter}`}));
+      for(const [tname,info] of Object.entries(groups)){
+        const btn = el("a",{href:`#/layer/${L}/track/${encodeURIComponent(tname)}`, className:"btn", textContent:tname});
+        const meta = el("div",{className:"count", textContent:`מורה: ${info.teacher||"—"} | תלמידים: ${info.list.length}`});
+        view.appendChild(el("div",{className:"layer"},[btn, meta]));
+      }
+      view.appendChild(el("div",{},[ el("a",{href:"#/","className":"back",textContent:"⬅ חזרה"}) ]));
+      return;
+    }
+
+    const list = layerStudents.filter(st => (st.track||"") === track);
+    view.appendChild(el("h2",{textContent:`שכבת ${letter} — ${track}`}));
+
+    const table = el("table",{},[
+      el("thead",{},[ el("tr",{},[
+        el("th",{textContent:"שם פרטי"}), el("th",{textContent:"שם משפחה"}),
+        el("th",{textContent:"כיתה"}), el("th",{textContent:"הקבצה"}), el("th",{textContent:"מורה"})
+      ]) ]),
+      el("tbody",{id:"rows"},[])
+    ]);
+    view.appendChild(table);
+    const tbody = table.querySelector("#rows");
+    for(const st of list){
+      tbody.appendChild(el("tr",{},[
+        el("td",{textContent:st.first_name||""}),
+        el("td",{textContent:st.last_name||""}),
+        el("td",{textContent:st.class||""}),
+        el("td",{textContent:st.track||""}),
+        el("td",{textContent:st.math_teacher||""})
+      ]));
+    }
+    view.appendChild(el("div",{},[ el("a",{href:`#/layer/${L}`,"className":"back",textContent:"⬅ חזרה לשכבה"}) ]));
+  }catch(e){
+    const v=document.getElementById("view"); if(v) v.innerHTML = `<div class="card">שגיאת טעינה: ${e}</div>`;
+  }
 }
-addEventListener('DOMContentLoaded',()=>{route();load();setInterval(load,3000);});
-addEventListener('hashchange',route);
+
+window.addEventListener("hashchange", render);
+window.addEventListener("DOMContentLoaded", ()=>{ render(); setInterval(render, 5000); });
