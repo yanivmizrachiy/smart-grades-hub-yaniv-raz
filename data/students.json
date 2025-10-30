@@ -1,1 +1,23 @@
-{"version":1,"updated_at":"","students":[]}
+{
+  "version": 1,
+  "updated_at": "",
+  "students": [
+    { "id":"S-Z-001","first_name":"דנה","last_name":"כהן","class":"ז1","track":"מדעית","math_teacher":"טל נחמיה" },
+    { "id":"S-Z-002","first_name":"איתי","last_name":"ברק","class":"ז1","track":"א'","math_teacher":"אילנית רז" },
+    { "id":"S-Z-003","first_name":"רות","last_name":"שלום","class":"ז2","track":"א'-1","math_teacher":"יניב רז" },
+    { "id":"S-Z-004","first_name":"נועם","last_name":"לוי","class":"ז2","track":"מקדמת","math_teacher":"הילה הנסב" },
+
+    { "id":"S-H-001","first_name":"מאיה","last_name":"ירון","class":"ח1","track":"מדעית","math_teacher":"יניב רז" },
+    { "id":"S-H-002","first_name":"אור","last_name":"אשד","class":"ח1","track":"א'","math_teacher":"טל נחמיה" },
+    { "id":"S-H-003","first_name":"עידו","last_name":"שגב","class":"ח2","track":"א'-1","math_teacher":"יניב רז" },
+    { "id":"S-H-004","first_name":"תמר","last_name":"שירן","class":"ח2","track":"א'-1","math_teacher":"רונית פואל" },
+    { "id":"S-H-005","first_name":"גילי","last_name":"נבות","class":"ח2","track":"מקדמת","math_teacher":"טל נחמיה" },
+    { "id":"S-H-006","first_name":"עומר","last_name":"עזר","class":"ח2","track":"מקדמת","math_teacher":"רונית פואל" },
+
+    { "id":"S-T-001","first_name":"יואב","last_name":"אלון","class":"ט1","track":"מדעית","math_teacher":"יניב רז" },
+    { "id":"S-T-002","first_name":"גבע","last_name":"שקד","class":"ט1","track":"א'","math_teacher":"סוניה רפאלי" },
+    { "id":"S-T-003","first_name":"דניאל","last_name":"קדם","class":"ט2","track":"א'-1","math_teacher":"טל נחמיה" },
+    { "id":"S-T-004","first_name":"עדי","last_name":"רום","class":"ט2","track":"א'-1","math_teacher":"נורית מויאל" },
+    { "id":"S-T-005","first_name":"רון","last_name":"פז","class":"ט2","track":"מקדמת","math_teacher":"מירית אפרים" }
+  ]
+}
