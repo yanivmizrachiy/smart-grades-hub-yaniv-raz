@@ -1,0 +1,56 @@
+name: Dispatch to n8n (Proxy)
+on:
+  workflow_dispatch:
+    inputs:
+      event:
+        description: "Event type"
+        required: true
+        type: string
+      payload:
+        description: "JSON string payload"
+        required: true
+        type: string
+      idempotency_key:
+        description: "Idempotency-Key (optional)"
+        required: false
+        type: string
+permissions:
+  contents: write
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Send signed request to n8n
+        env:
+          WEBHOOK_URL: ${{ secrets.N8N_WEBHOOK_URL }}
+          SECRET:      ${{ secrets.N8N_WEBHOOK_SECRET }}
+          INPUT_EVENT: ${{ inputs.event }}
+          INPUT_PAYLOAD: ${{ inputs.payload }}
+          INPUT_IDEMP: ${{ inputs.idempotency_key }}
+        run: |
+          set -e
+          TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          PAYLOAD=${INPUT_PAYLOAD}
+          [ -n "$INPUT_IDEMP" ] && IDEMP="$INPUT_IDEMP" || IDEMP=$(uuidgen)
+          TO_SIGN="$TS.$PAYLOAD"
+          SIG="sha256=$(printf "%s" "$TO_SIGN" | openssl dgst -sha256 -hmac "$SECRET" -binary | xxd -p -c 256)"
+          CODE=$(curl -s -o n8n_resp.json -w "%{http_code}" -X POST "$WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -H "X-Signature: $SIG" \
+            -H "X-Timestamp: $TS" \
+            -H "Idempotency-Key: $IDEMP" \
+            --data "$PAYLOAD")
+          echo "HTTP=$CODE"
+          echo "{\"ts\":\"$TS\",\"event\":\"$INPUT_EVENT\",\"code\":$CODE}" > .status/full_report.json
+      - uses: actions/upload-artifact@v3
+        with:
+          name: n8n_response
+          path: n8n_resp.json
+      - name: Commit status
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .status/full_report.json
+          git commit -m "ci: update full_report after n8n dispatch" || echo "no changes"
+          git push

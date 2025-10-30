@@ -1,0 +1,31 @@
+name: n8n self-heal
+on:
+  schedule: [{ cron: "*/15 * * * *" }]
+  workflow_dispatch: {}
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ping n8n
+        env:
+          WEBHOOK_URL: ${{ secrets.N8N_WEBHOOK_URL }}
+          SECRET:      ${{ secrets.N8N_WEBHOOK_SECRET }}
+        run: |
+          set -e
+          TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          PAYLOAD=event:heartbeat
+          SIG="sha256=$(printf "%s" "$TS.$PAYLOAD" | openssl dgst -sha256 -hmac "$SECRET" -binary | xxd -p -c 256)"
+          CODE=$(curl -s -o resp.json -w "%{http_code}" -X POST "$WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -H "X-Signature: $SIG" -H "X-Timestamp: $TS" -H "Idempotency-Key: heartbeat") || true
+          echo "{\"ts\":\"$TS\",\"code\":$CODE}" > .status/canvas_sync.json
+      - name: Commit status
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .status/canvas_sync.json
+          git commit -m "ci: heartbeat status" || echo "no changes"
+          git push
